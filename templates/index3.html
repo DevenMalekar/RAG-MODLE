@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBot with Your File</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            display: flex;
+        }
+        .sidebar {
+            position: relative;
+            width: 240px;
+            height: 90vh; 
+            margin-left: 10px;
+            margin-top: 10px;
+            background-color: #ffffffdf;
+            color: rgb(22, 3, 3);
+            padding: 20px;
+            box-shadow: 1px 0 2px rgb(4, 4, 4);
+            overflow-y: auto;
+            border-radius: 10px;
+            border-left: 2px solid black;
+            border-top: 2px solid black;
+        }
+
+        .sidebar input[type="file"], .sidebar select {
+            width: 55%;
+            padding: 10px;
+            margin: 10px 0;
+            border: navajowhite;
+            background-color: #000000;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .sidebar #uploadBtn:hover, .sidebar input[type="file"]:hover, .sidebar select:hover {
+            background-color: #34a703;
+            border:2px #000;
+
+        }
+        .sidebar #createBotBtn:hover {
+            background-color: hsl(0, 100%, 48%);
+            border: 2px #000; 
+        }
+
+        
+        .chat-container {
+            max-width: 990px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #ffffff;
+            box-shadow: 0 0 4px rgb(0, 0, 0);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            border-radius: 20px;
+        }
+
+        .messages {
+            height: 400px;
+            overflow-y: scroll;
+            padding: 10px;
+            border: 2px solid #ffffff;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            border-radius: 10px;
+        }
+
+        .chat-message {
+            display: flex; 
+            align-items: center; 
+            margin: 10px 0;
+        }
+
+        .message {
+            padding: 1rem; 
+            border-radius: 0.5rem; 
+            display: flex;
+            max-width: 80%; 
+            word-wrap: break-word; 
+        }
+
+        .message.user {
+            background-color: #ffe1e1;
+            margin-left: auto; 
+            justify-content: flex-end; 
+        }
+
+        .message.bot {
+            background-color: hwb(0 91% 9%);
+            margin-right: auto; 
+            justify-content: flex-start; 
+        }
+
+        .avatar {
+            margin: 0 10px; 
+        }
+
+        .avatar img {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .input-box {
+            display: flex;
+            flex-grow: 1;
+            border: 1px solid rgb(0, 0, 0);
+            border-radius: 20px;
+            overflow: hidden;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: none; 
+            outline: none; 
+           
+        }
+
+        #createBotBtn {
+            width: 100%; 
+            padding: 8px 10px; 
+            border: 2px solid transparent;
+            background-color: hwb(0 0% 100%); 
+            color: rgb(255, 255, 255); 
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            display: block; 
+            text-align: center;
+            font-size: 16px;
+
+        }
+
+        #uploadBtn{
+            width: 70px;
+            padding: 10px 15px;
+            border: 2px solid transparent; 
+            background-color: #000300f3;
+            color: white;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background-color 0.3s ease, border-color 0.3s ease; 
+        }
+        #uploadForm {
+            position: absolute;
+            bottom: 20px; 
+            left: 0;
+            right: 0;
+            padding-left: 20px;
+            padding-right: 20px;
+            
+        }
+
+         button#sendBtn {
+            padding: 6px 15px;
+            border-left: 2px solid rgb(0, 0, 0);
+            background-color: #4CAF50;
+            margin-left: 5px;
+            margin-right: 5px; 
+            border-radius: 20px;
+            
+        }
+        button#sendBtn:hover {
+            background-color: #34a703;
+            border:2px #000;
+
+        }
+
+        button#clearBtn {
+            padding: 8px 12px;
+            background-color: #262626;
+            color: white;
+            border-radius: 10px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        button#clearBtn:hover {
+            background-color: #000000;
+            border:1px #000;
+
+        }
+
+
+        #submitBtn{
+            width: auto;
+            padding: 10px 15px;
+            border: 2px solid transparent; 
+            background-color: #000300f3;
+            color: white;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: background-color 0.3s ease, border-color 0.3s ease; 
+        }
+        #submitBtn:hover {
+            background-color: rgb(0, 10, 194); 
+            border-color: #000;
+        }
+
+
+
+            .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 50%;
+            top: 50%; 
+            transform: translate(-40%, -50%); 
+            width: 50%; 
+            height: 50%; 
+            overflow: auto;
+            
+        }
+
+        .modal-content {
+            background-color: hsl(0, 0%, 100%);
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; 
+            border-radius: 20px;
+        }
+        .modal-content ul li {
+            margin: 10px 0;
+            border: 1px solid #ddd; 
+            border-radius: 5px;
+            padding: 10px; 
+            background-color: #f9f9f9; 
+            transition: background-color 0.3s;
+        }
+
+        .modal-content ul li:hover {
+            background-color: #e0e0e0; 
+        }
+
+        .modal-content ul li a {
+            text-decoration: none; 
+            color: #333; 
+            display: block; 
+            width: 100%; 
+            height: 100%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: rgb(168, 159, 159);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+.sidebar button:hover {
+    background-color: #f4f4f4; 
+    border-color: #888888; 
+    transform: scale(1.05); 
+}
+
+    </style>
+    
+</head>
+<body>
+    
+    <div class="sidebar">
+        <h1 style="text-align: center; border: 1.2px solid rgb(0, 0, 0); padding: 10px; display: inline-block; border-radius: 35px; background-color: hsl(0, 0%, 100%); color: rgb(0, 0, 0); width: 200px; height: 35px; font-size: 25px; font-family: Verdana, Geneva, Tahoma, sans-serif; margin-left: 10px;">
+            RAG MODEL
+            <img src="https://thumbs.dreamstime.com/b/pdf-icon-vector-illustration-template-318878796.jpg" alt="Image description" style="height: 40px; width: 40px; vertical-align: middle; border-radius: 3px;">
+        </h1>        
+        <hr style="border: 1px solid rgb(0, 0, 0); width: 95%; margin-bottom: 30px;">
+        
+        <button id="createBotBtn" onclick="createBot()" style="margin-bottom: 20px;">
+            <b style="margin-right: 7px;">+</b> Create Bot
+        </button>
+        
+        <div id="databaseButtons" style="list-style-type: none; padding: 0; margin-left: 30px; margin-right: 20px;  ">
+
+            <button id="defaultBotBtn" onclick="selectDatabase('default', this)" style="margin-bottom: 10px; width: calc(100% - 20px); color: #000000; font-size: 16px; 
+            padding: 10px; border: 2px solid #000000; border-radius: 3px; display: none; text-align: center;margin-top: 30px;cursor: pointer;"  >
+                Default Bot
+            </button>
+
+        </div>
+        
+        <form id="uploadForm" enctype="multipart/form-data" action="/upload" method="POST">
+            <input type="file" id="pdfUpload" name="file" style="margin-bottom: 10px;">
+            <button id="uploadBtn" type="submit" style="cursor: pointer;">Upload</button>
+        </form>   
+        
+        <div id="message"></div>
+    </div>
+
+        <div class="chat-container">
+            <h3 style="text-align: center; ">My Document<div id="selectedOptionDisplay" style="text-align:center; font-weight:lighter; font-size: smaller; margin-bottom: 10px;">
+                Database: <span style="color: blue;">Default DB</span>
+            </div></h3>
+            <div class="messages" id="chatBox"></div>
+            
+            <div class="input-container">
+                <div class="input-box">
+                    <input type="text" id="userInput" placeholder="Type your message here...">
+                    <button id="sendBtn" onclick="sendMessage()"style="cursor: pointer;">Send</button>
+                </div>
+                <button id="clearBtn" onclick="clearChat()"style="cursor: pointer;">Clear</button>
+            </div>
+        </div>
+        
+
+        <div id="botModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                
+                <h2 style="display: ruby; text-align: center;">Create Bot</h2>
+        
+                <form id="databaseForm" action="/select_database" method="POST" onsubmit="return getSelectedOption(event);">
+                    <label for="options" style="display: block; margin-top: 10px;">Select Option:</label>
+                    <select id="options" name="database" style="text-align: center;cursor: pointer; width: 80%; padding: 10px; font-size: 16px; margin-top: 10px; margin-left: 20px;">
+                        <option value="" disabled selected>Choose</option>
+                        <option value="default">Default Database</option>
+                        <option value="resume">Resume DB</option>
+                        <option value="document">Document DB</option>
+                        <option value="other">Other DB</option>
+                    </select>
+                
+                    <label for="folderLocation" style="display: block; margin-top: 10px;">Enter Folder Location:</label>
+                    <input type="text" id="folderLocation" name="folderLocation" placeholder="D:\AutoaReaume\Pdfs" style="text-align: center; width: 80%; padding: 10px; font-size: 16px; margin-top: 15px; margin-bottom: 20px;">
+
+                    <button type="submit" id="submitBtn" style="cursor: pointer;">Submit</button>
+                </form>
+            </div>   
+        </div>
+    
+ 
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        form.onsubmit = async (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            document.getElementById('message').textContent = result.message;
+            
+            document.getElementById('pdfUpload').value = '';
+        };
+
+        function uploadFile() {
+            const formData = new FormData();
+            const fileInput = document.getElementById('pdfUpload').files[0];
+
+            if (!fileInput) {
+                alert('Please select a file to upload.');
+                return;
+            }
+
+            formData.append('file', fileInput);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.message);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Upload failed: ' + error.message);
+            });
+          }
+
+        function sendMessage() {
+            const userInput = document.getElementById("userInput").value;
+            if (!userInput) return; 
+            appendMessage(userInput, 'user'); 
+
+            fetch('/query', {
+                method: 'POST',
+                body: userInput
+            })
+            .then(response => response.text())
+            .then(data => {
+                appendMessage(data.trim(), 'bot');
+            })
+            .catch(error => {
+                appendMessage('Sorry, an error occurred.', 'bot');
+            });
+            document.getElementById("userInput").value = '';
+          }
+
+         function appendMessage(message, sender) {
+            const chatBox = document.getElementById("chatBox");
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("chat-message");
+
+            const textDiv = document.createElement("div");
+            textDiv.classList.add("message", sender);
+
+            const formattedMessage = formatResponse(message);
+            textDiv.innerHTML = formattedMessage; 
+            const avatarDiv = document.createElement("div");
+            avatarDiv.classList.add("avatar");
+
+            if (sender === 'user') {
+                avatarDiv.appendChild(createUserAvatar());
+                messageDiv.appendChild(textDiv);
+                messageDiv.appendChild(avatarDiv);
+            } else {
+                avatarDiv.appendChild(createBotAvatar());
+                messageDiv.appendChild(avatarDiv);
+                messageDiv.appendChild(textDiv);
+            }
+
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight; 
+        }
+
+        function formatResponse(message) {
+            
+            if (message.includes('•')) {
+                return formatBulletPoints(message);
+            }
+            return message.replace(/\n/g, '<br>'); 
+        }
+
+        function formatBulletPoints(message) {
+            const lines = message.split('\n');
+            let listItems = '';
+
+            lines.forEach(line => {
+                if (line.startsWith('•')) {
+                    const content = line.substring(1).trim();  
+                    listItems += `<li><strong>${content}</strong></li>`; 
+                } else {
+                    
+                    listItems += `<li>${line}</li>`;
+                }
+            });
+
+            return `<ul style="list-style-type: disc; padding-left: 20px; margin: 0;">${listItems}</ul>`;
+        }
+
+        function createUserAvatar() {
+            const avatarImg = document.createElement("img");
+            avatarImg.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS76TXsoPmDqx8-ky4CmOoTcBRsmKOple41rQ&s";
+            avatarImg.alt = "User Avatar";
+            return avatarImg;
+        }
+
+        function createBotAvatar() {
+            const avatarImg = document.createElement("img");
+            avatarImg.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIEsglisqjCZ3hFhP_JdlOTeNNPCUwEM0tFQ&s";
+            avatarImg.alt = "Bot Avatar";
+            return avatarImg;
+        }
+
+        function generateBotResponse(userInput) {
+            return `You said: "${userInput}". How can I assist further?`;
+        }
+
+        function clearChat() {
+            const chatBox = document.getElementById("chatBox");
+            chatBox.innerHTML = ''; 
+        }
+
+        function createBot() {
+            const modal = document.getElementById("botModal");
+            modal.style.display = "block"; 
+        }
+
+        function closeModal() {
+        const modal = document.getElementById("botModal");
+        modal.style.display = "none";
+        }
+
+   
+        window.onclick = function(event) {
+         const modal = document.getElementById("botModal");
+         if (event.target == modal) {
+            modal.style.display = "none";
+        }
+       }
+
+
+       let bots = [];
+
+       function createBot() {
+    const modal = document.getElementById("botModal");
+    modal.style.display = "block"; 
+
+    
+     document.getElementById('defaultBotBtn').style.display = 'block';
+    }
+
+
+function getSelectedOption(event) {
+    event.preventDefault(); 
+
+    const selectedOption = document.getElementById("options").value; 
+    const folderLocation = document.getElementById("folderLocation").value; 
+    if (!selectedOption) {
+        alert("Please select a database option.");
+        return false;
+    }
+
+    console.log("Selected Database:", selectedOption);
+    console.log("Folder Location:", folderLocation);
+
+    const formData = new FormData();
+    formData.append('database', selectedOption);
+    formData.append('folderLocation', folderLocation);
+    closeModal();
+
+    
+    const botName = `${selectedOption} Bot`;
+    bots.push(botName);
+
+    document.getElementById('selectedOptionDisplay').innerHTML = `Selected Database: <span style="color: blue;">${selectedOption === 'default' ? 'Default' : selectedOption}</span>`;
+    
+    // Create a new button for the created bot
+    createBotButton(botName, selectedOption);
+    
+    fetch('/select_database', {
+        method: 'POST',
+        body: formData
+    })
+    
+    .then(response => response.json())
+    
+    .then(data => {
+        if (Array.isArray(data.messages)) {
+            alert(data.messages.join('\n'));
+        } else {
+            alert('Unexpected response format');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while processing the request.');
+    });
+    
+    return true;  
+}
+
+function createBotButton(botName, dbName) {
+    const buttonContainer = document.getElementById('databaseButtons');
+    
+    const button = document.createElement('button');
+    button.textContent = botName;
+    button.style.marginBottom = '10px';
+    button.style.width = 'calc(100% - 20px)';
+    button.style.color = '#000000';
+    button.style.fontSize = '16px';
+    button.style.padding = '10px';
+    button.style.border = '2px solid #000000';
+    button.style.borderRadius = '3px';
+    button.style.display = 'block';
+    button.style.textAlign = 'center';
+    button.style.cursor = 'pointer';
+
+    button.onclick = function() {
+        selectDatabase(dbName, this);
+    };
+
+    
+    buttonContainer.appendChild(button);
+
+    // selectDatabase(dbName, button);
+}
+
+
+   function selectDatabase(dbName, element) {
+    const items = document.querySelectorAll('#databaseButtons button');
+
+
+    items.forEach(item => {
+        item.style.backgroundColor = 'hsl(0, 0%, 100%)'; 
+        item.style.border = '2px solid black';
+        item.style.color = 'black';
+        item.style.borderRadius='3px'
+        item.style.cursor = 'pointer';
+    });
+
+   
+        element.style.backgroundColor = '#00FF00';  
+        element.style.border = '3px solid #FFFFFF';
+        element.style.borderRadius = '10px'; 
+        element.style.color = '#FFFFFF';
+        element.style.cursor = 'default';
+
+    document.getElementById('selectedOptionDisplay').innerHTML = `Database: <span style="color: blue;">${dbName}</span>`;
+
+    const formData = new FormData();
+    formData.append('database', dbName);
+
+    fetch('/select_database', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (Array.isArray(data.messages)) {
+            alert(data.messages.join('\n')); 
+        } else {
+            alert('Unexpected response format');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while switching databases.');
+    });
+}
+    </script>
+</body>
+</html>
